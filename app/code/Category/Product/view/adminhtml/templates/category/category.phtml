@@ -1,0 +1,268 @@
+<?php 
+	$block = $block->getLayout()->createBlock('Category\Product\Block\Adminhtml\Categorytree');
+	$categories = $block->getCategoryCollection(true,false,'path',false);
+	$currentCategory = $this->getRequest()->getParam('id');
+	$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+	$conf = $objectManager->get('Magento\Framework\App\Config\ScopeConfigInterface');
+	$default_cat = $conf->getValue('category_ids/cat_id/default_cat_id');
+	$manual_cat = $conf->getValue('category_ids/cat_id/manual_cat_id');
+	if(!empty($default_cat))
+	$assignProduct = $block->getAssignProductCollection($currentCategory);
+	$data = $block->getCategory($currentCategory);
+	$checkedValue=array();
+	foreach($data as $checkedCategory){
+		$checkedValue[] = $checkedCategory->getCheckedCategory();
+	}
+	$url = $this->getUrl('catalog/category/custom');
+	if(!empty($checkedValue)){
+		$checkedval = explode(",",$checkedValue[0]);
+	}
+?>
+	<form name="custom-form" action="<?php echo $this->getUrl('catalog/category/save'); ?>" method="post" id="custom-form">
+		<div class="custom-cat">
+			<div class="custom-heading">
+				<h3>Impoted Categories</h3>
+				<div class="custom-cat-first">
+					<?php 
+					foreach($categories as $cat){
+						$var = '';
+						$catPath  = $cat->getPath();
+						$entityId = $cat->getEntityId();
+						$level    = $cat->getLevel();
+						if($level>1){
+							for($i=0; $i<=$level;$i++){
+								$var.="--";
+							}
+						}
+						if($entityId == 1){
+							continue;
+						}
+						if($entityId == $default_cat || str_contains($catPath,'/'.$default_cat.'/')){ ?>
+							<span class="custom-tree"><?php echo $var; ?></span>
+							<label>
+								<input type="checkbox" id="custom-check"  data-bind="text: myMessage" name="custom-checkbox" 
+								data-validate="{required:false}" class="input-checkbox checkbox" value="<?php echo $cat->getEntityId(); ?>" <?php if(!empty($checkedValue)) { if(in_array($entityId,$checkedval)){ echo "checked";} }?> <?php if($currentCategory==$cat->getEntityId()){ echo "disabled"; }?> /><?php echo $cat->getName();?>
+							</label></br>
+					  
+						<?php	
+						} 
+					} ?>
+				</div>
+			</div>
+			<div class="custom-second-head">
+				<h3>Manual(Destination) Categories</h3>
+				<div class="custom-cat-first">	
+					<?php foreach($categories as $cat){
+						$var='';
+						$catPath = $cat->getPath();
+						$entityId = $cat->getEntityId();
+						$level = $cat->getLevel();
+						if($level>1){
+							for($i=0; $i<=$level;$i++){
+								$var.="--";
+							}
+						}
+						if($entityId == 1){
+							continue;
+						}
+						if($entityId == $manual_cat ||  str_contains($catPath,'/'.$manual_cat.'/')){ ?>
+							<span class="custom-tree"><?php echo $var; ?></span>
+							<label>
+								<input type="checkbox" id="custom-checkbox" name="custom-checkbox" data-validate="{required:false}" class="input-checkbox checkbox" value="<?php echo $cat->getEntityId(); ?>" <?php if(!empty($checkedValue)) { if(in_array($entityId,$checkedval)){ echo "checked";} }?><?php if($currentCategory==$cat->getEntityId()){echo "disabled"; }else{  echo ""; } ?> /><?php echo $cat->getName();?>
+							</label></br>
+						<?php }
+					} ?>
+				</div>
+			</div>
+		</div>
+		<?php
+			$block = $block->getLayout()->createBlock('Category\Product\Block\Adminhtml\Categorytree');
+			$data = $block->getCategory($currentCategory);
+			foreach($data as $productRecurisive){
+				$value = $productRecurisive->getProductRecurisive();
+			}
+			if(empty($value)){
+				$value = 0;
+			}
+			if($value == 0){
+		 ?>
+				<div class="select-subs">
+					<h3>Select Subcategories</h3>
+					<label>
+						<input type="checkbox" id="custom-check"  data-bind="text: myMessage" name="custom-checkbox" data-validate="{required:false}" class="input-checkbox checkbox" value="0"/><?= __("Products Recurisevely"); ?>
+					</label>
+				</div>
+			<?php }
+			else{
+			?>
+			<div class="select-subs">
+					<h3>Select Subcategories</h3>
+					<label>
+						<input type="checkbox" id="custom-check"  data-bind="text: myMessage" name="custom-checkbox" data-validate="{required:false}" class="input-checkbox checkbox" value="0" checked /><?= __("Products Recurisevely"); ?>
+					</label>
+				</div>
+			<?php 
+			}
+			?>
+		<?php
+		$block = $block->getLayout()->createBlock('Category\Product\Block\Adminhtml\Custom\Tab');
+		$blockGrid = $block->getBlockGrid();
+		$gridJsObjectName = $blockGrid->getJsObjectName();
+	 	// $data = $block->getProductsJson($assignProduct); ?>
+	</form> 
+
+<div>
+    <ul class="checker" style="display: none;">
+    	<?php 
+    	if(!empty($checkedval)){
+    	$blockcustomobj = $block->getLayout()->createBlock('Category\Product\Block\Adminhtml\Categorytree');
+    	foreach($checkedval as $val){
+    		$data = $blockcustomobj->getProductCollectionFromCategory($val);
+    		foreach($data as $productId){
+    	?>
+        <li class="chosen-because-of-cat"><?php echo $productId->getEntityId(); ?></li>
+   <?php }
+}
+}
+   ?>
+    </ul>
+</div>
+
+<div class="gridTitle">
+	<h3>Add Extra product</h3>
+</div>
+
+	<?= $block->getGridHtml() ?>
+	<input type="hidden" name="custom_product" id="in_custom_product" data-form-part="category_form" value="" />
+	<script type="text/x-magento-init">
+	    {
+	        "*": {
+	            "Category_Product/catalog/category/assign-products": {
+	                "selectedProducts": <?= /* @noEscape */ $block->getProductsJson() ?>,
+	                "gridJsObjectName": <?= /* @noEscape */ '"' . $gridJsObjectName . '"' ?: '{}' ?>
+	            }
+	        }
+	    }
+	</script>
+	<script>
+    	require('mage/apply/main').apply();
+    	require(['jquery', 'jquery/ui'], function($){
+			$('.input-checkbox').click(function(){
+	  			var favorite = [];
+	           	var customurl ='<?php echo $url; ?>';
+	           	$.each($("input[name='custom-checkbox']:checked"), function(){
+    		    	favorite.push($(this).val());
+	           	});
+	           	$.ajax({
+		            showLoader:true,
+		            url:customurl,
+		            type:'POST',
+		            data:{category:favorite,uncheckCategory:4},
+		            complete: function(response){
+		            	console.log(true);
+		            }
+	         	});
+			});
+
+			$(document).ready(function(){
+
+			});
+  		});
+	</script>
+<style type="text/css">
+	.custom-cat {
+    display: flex;	
+}
+.custom-cat-second {
+    
+    margin-left: 100px;
+}
+span.custom-tree {
+    opacity: 0;
+}
+tr.customWork {
+    pointer-events: none;
+}
+.admin__scope-old .custom-cat {
+    justify-content: space-around;
+    max-width: 826px;
+    margin: 0 auto;
+    gap: 6rem;
+}
+.admin__scope-old .custom-cat > div {
+    flex: 0 0 50%;
+    max-width: 50%;
+  /*  height: 175px;
+    overflow: auto;*/
+}
+.admin__scope-old .custom-cat > div .custom-cat-first {
+    height: 185px;
+    overflow: auto;
+} 
+.admin__scope-old .custom-cat > div label {
+    line-height: 30px;
+}
+/*.catalog-category-edit .loading-mask {
+    display: none !important;
+}*/
+.admin__scope-old .custom-cat > div label input {
+    margin-right: 15px;
+}
+.admin__scope-old .custom-cat > div label input {
+    appearance: none;
+    position: relative;
+     width: 15px;
+    height: 15px;
+}
+.admin__scope-old .custom-cat > div label input:after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 1px solid black;
+    top: 2px;
+    left: 5px;
+    overflow: hidden;
+}
+.admin__scope-old .custom-cat > div label input:checked:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: black;
+}
+
+
+.select-subs label input {
+    margin-right: 15px;
+}
+.select-subs label input{
+    appearance: none;
+    position: relative;
+     width: 15px;
+    height: 15px;
+}
+.select-subs label input:after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 1px solid black;
+    top: 2px;
+    left: 5px;
+    overflow: hidden;
+}
+.select-subs label input:checked:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: black;
+}
+.select-subs {
+    margin-bottom: 25px;
+}
+</style>
+<!-- <script type="text/javascript">
+	
+</script> -->

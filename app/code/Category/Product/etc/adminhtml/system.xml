@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="category" translate="label" sortOrder="10">
+            <label>Category</label>
+        </tab>
+
+        <section id="category_ids" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Category</label>
+            <tab>category</tab>
+            <resource>Category_Product::helloworld_config</resource>
+            <group id="cat_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Category</label>
+                <field id="default_cat_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enter Default Category Id</label>
+                    <comment>enter defult category id.</comment>
+                </field>
+                   <field id="manual_cat_id" translate="label" type="text" sortOrder="2" showInDefault="2" showInWebsite="0" showInStore="0">
+                    <label>Enter Manual Category Id</label>
+                    <comment>enter manual category id.</comment>
+                </field>
+                <field id="team_overview_id" translate="label" type="text" sortOrder="2" showInDefault="2" showInWebsite="0" showInStore="0">
+                    <label>Enter Team Overview Id</label>
+                    <comment>Enter Team Overview Id</comment>
+                </field>
+                 <field id="meta_cat_id" translate="label" type="text" sortOrder="2" showInDefault="2" showInWebsite="0" showInStore="0">
+                    <label>Enter Meta Menu Id</label>
+                    <comment>Meta Menu</comment>
+                </field>
+                <field id="dealer_cat_id" translate="label" type="text" sortOrder="2" showInDefault="2" showInWebsite="0" showInStore="0">
+                    <label>Enter Dealer Category Page ID</label>
+                    <comment>Dealer Page ID</comment>
+                </field>
+                </group>
+           
+        </section>
+    </system>
+</config>
